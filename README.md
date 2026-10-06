@@ -34,6 +34,8 @@ The [app icon](assets/lanterncache-icon.png) is also used in the sidebar and as 
 
 ## Install
 
+Browse the [documentation wiki](https://github.com/timiliris/lanterncache/wiki), including the [French guide](https://github.com/timiliris/lanterncache/wiki/Guide-francais), configuration reference and troubleshooting pages. Wiki sources live in `docs/wiki/` for contributions.
+
 See [the complete installation guide](docs/INSTALL.md). The default stack gives LanCache a dedicated LAN IP and publishes the dashboard on a separate server port. Docker Engine on Linux is required; Docker Desktop is not the installation target.
 
 ```sh

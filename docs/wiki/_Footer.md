@@ -1,0 +1,1 @@
+[LanternCache source](https://github.com/timiliris/lanterncache) · [Report an issue](https://github.com/timiliris/lanterncache/issues) · [MIT license](https://github.com/timiliris/lanterncache/blob/main/LICENSE) · Example addresses must be adapted to your network.
