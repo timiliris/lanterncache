@@ -30,6 +30,8 @@ docker compose run --rm prefill select-apps
 
 Steam authentication and Steam Guard happen in your terminal. The browser never asks for your Steam password. Configure client DNS as described in the installation guide: opening the dashboard alone does not activate caching on your PC.
 
+The initial dashboard includes Satisfactory, Apex Legends, Call of Duty and Aimlabs. SteamPrefill can select other games for overnight preparation; adding their cards and individual controls currently requires extending the game catalog in `server.py` and the translation catalogs.
+
 ## Private-network access
 
 Anyone who can reach the dashboard can control downloads. The Docker installation mounts the Docker socket, granting the application control over containers and potentially the host. Keep it on a trusted LAN or behind a private VPN with access controls. It is not designed for direct public Internet exposure. CSRF tokens and origin checks protect browser actions but do not authenticate users.
