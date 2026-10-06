@@ -1,0 +1,15 @@
+[Unit]
+Description=Advertise LanternCache on the local network
+After=network-online.target avahi-daemon.service
+Wants=network-online.target
+Requires=avahi-daemon.service
+
+[Service]
+Type=simple
+# Replace with the LAN address of the UI host, not CACHE_IP.
+ExecStart=/usr/bin/avahi-publish-address -R lanterncache.local 192.168.1.10
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

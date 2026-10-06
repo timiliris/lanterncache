@@ -1,0 +1,73 @@
+name: lanterncache
+services:
+  cache:
+    image: ${LANCACHE_IMAGE:-lancachenet/monolithic:latest}
+    container_name: lanterncache-cache
+    restart: unless-stopped
+    environment:
+      UPSTREAM_DNS: ${UPSTREAM_DNS:-9.9.9.9}
+      CACHE_DISK_SIZE: ${CACHE_DISK_SIZE:-1000g}
+      MIN_FREE_DISK: ${MIN_FREE_DISK:-100g}
+      CACHE_INDEX_SIZE: ${CACHE_INDEX_SIZE:-250m}
+      CACHE_MAX_AGE: ${CACHE_MAX_AGE:-365d}
+      TZ: ${TZ:-Europe/Brussels}
+    dns: [127.0.0.1]
+    volumes:
+      - ${CACHE_ROOT:?Set CACHE_ROOT in .env}/cache:/data/cache
+      - ${CACHE_ROOT:?Set CACHE_ROOT in .env}/logs:/data/logs
+    networks:
+      lan:
+        ipv4_address: ${CACHE_IP:?Set CACHE_IP in .env}
+  dns:
+    image: ${LANCACHE_DNS_IMAGE:-lancachenet/lancache-dns:latest}
+    container_name: lanterncache-dns
+    restart: unless-stopped
+    network_mode: service:cache
+    environment:
+      USE_GENERIC_CACHE: "true"
+      LANCACHE_IP: ${CACHE_IP}
+      UPSTREAM_DNS: ${UPSTREAM_DNS:-9.9.9.9}
+    depends_on: [cache]
+  prefill:
+    image: ${PREFILL_IMAGE:-tpill90/steam-lancache-prefill:latest}
+    profiles: [tools]
+    network_mode: service:cache
+    volumes:
+      - ${DATA_ROOT:?Set DATA_ROOT in .env}/prefill:/Config
+    depends_on: [dns]
+  ui:
+    build: .
+    restart: unless-stopped
+    ports:
+      - ${UI_BIND_IP:-127.0.0.1}:${UI_PORT:-8088}:8088
+    environment:
+      CACHEFLOW_MODE: docker
+      BIND: 0.0.0.0
+      PORT: "8088"
+      CACHEFLOW_BASE: /data
+      CACHEFLOW_CACHE_ROOT: /cache
+      CACHEFLOW_HOST_DATA: ${DATA_ROOT}
+      CACHEFLOW_CACHE_IP: ${CACHE_IP}
+      CACHEFLOW_HOST_LABEL: ${HOST_LABEL:-LanternCache}
+      CACHEFLOW_CAPACITY_GIB: ${CAPACITY_GIB:-1000}
+      CACHEFLOW_ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:?Set ALLOWED_ORIGINS in .env}
+      CACHEFLOW_CACHE_CONTAINER: lanterncache-cache
+      CACHEFLOW_DNS_CONTAINER: lanterncache-dns
+      CACHEFLOW_PREFILL_IMAGE: ${PREFILL_IMAGE:-tpill90/steam-lancache-prefill:latest}
+      CACHEFLOW_TZ: ${TZ:-Europe/Brussels}
+      CACHEFLOW_NIGHT_START: ${NIGHT_START:-1}
+      CACHEFLOW_NIGHT_END: ${NIGHT_END:-7}
+    volumes:
+      - ${DATA_ROOT}:/data
+      - ${CACHE_ROOT}:/cache:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+    depends_on: [dns]
+networks:
+  lan:
+    driver: macvlan
+    driver_opts:
+      parent: ${LAN_INTERFACE:?Set LAN_INTERFACE in .env}
+    ipam:
+      config:
+        - subnet: ${LAN_SUBNET:?Set LAN_SUBNET in .env}
+          gateway: ${LAN_GATEWAY:?Set LAN_GATEWAY in .env}
