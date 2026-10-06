@@ -67,7 +67,7 @@ SteamPrefill requires a Steam account with access to the selected games. Lantern
 - Report issues with your Linux version, Docker version, redacted logs, and reproduction steps.
 - Never include `.env`, `account.config`, account tokens, private network details, or game content in issues or pull requests.
 
-Original application code is licensed under [MIT](LICENSE). Third-party images, game artwork, trademarks, and dependencies retain their own rights and licenses. Steam artwork is loaded from Valve's CDN and is not distributed in this repository.
+Original application code is licensed under [MIT](LICENSE). Third-party images, game artwork, trademarks, and dependencies retain their own rights and licenses. Game artwork is loaded from Valve's CDN at runtime; interface screenshots include it for demonstration. Original game artwork files are not bundled with the app.
 
 ## Development checks
 
