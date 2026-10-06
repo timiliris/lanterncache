@@ -18,6 +18,8 @@ web-run.*/
 *.jpg
 *.jpeg
 *.png
+!assets/*.png
+!docs/images/*.png
 *.webp
 *.zip
 *.tar

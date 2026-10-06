@@ -150,14 +150,14 @@ class Handler(BaseHTTPRequestHandler):
         if self.path=='/api/state':
             with LOCK: data=dict(STATE)
             return self.send(200,data)
-        assets={'/':'index.html','/app.js':'app.js','/style.css':'style.css','/i18n.js':'i18n.js','/ux.js':'ux.js'}
+        assets={'/':'index.html','/app.js':'app.js','/style.css':'style.css','/i18n.js':'i18n.js','/ux.js':'ux.js','/assets/lanterncache-icon.png':'assets/lanterncache-icon.png'}
         # Translation filenames are enumerated, never arbitrary filesystem paths.
         for catalog in (ROOT/'locales').glob('*.json'):
             if re.fullmatch(r'[a-z]{2}(?:-[A-Z]{2})?',catalog.stem): assets['/locales/'+catalog.name]='locales/'+catalog.name
         if self.path not in assets: return self.send(404,{'error':'Page introuvable'})
         name=assets[self.path]
-        kind={'html':'text/html','js':'text/javascript','css':'text/css','json':'application/json'}[name.rsplit('.',1)[1]]
-        self.send(200,(ROOT/name).read_bytes(),kind+'; charset=utf-8')
+        kind={'html':'text/html','js':'text/javascript','css':'text/css','json':'application/json','png':'image/png'}[name.rsplit('.',1)[1]]
+        self.send(200,(ROOT/name).read_bytes(),kind if kind=='image/png' else kind+'; charset=utf-8')
 
     def do_POST(self):
         with ACTION_LOCK:

@@ -1,8 +1,27 @@
 # LanternCache
 
+<img src="assets/lanterncache-icon.png" width="96" height="96" alt="LanternCache — blue lantern and cache spark">
+
 A local dashboard for Steam downloads, powered by [LanCache](https://lancache.net/) and [SteamPrefill](https://github.com/tpill90/steam-lancache-prefill). Prepare your games overnight, inspect your cache, and control downloads from one browser tab.
 
 LanternCache is an independent application. It uses upstream LanCache and SteamPrefill containers; it is not a fork of either project and is not affiliated with Valve.
+
+## Screenshots
+
+Real interface captures using example network details and demonstration activity. English and French are included by default.
+
+![LanternCache overview in English](docs/images/overview-en.png)
+
+<details>
+<summary>Game library and French night schedule</summary>
+
+![Steam game library](docs/images/library-en.png)
+
+![Night schedule in French](docs/images/schedule-fr.png)
+
+</details>
+
+The [app icon](assets/lanterncache-icon.png) is also used in the sidebar and as the browser favicon. See [branding notes](docs/BRANDING.md).
 
 ## Features
 
