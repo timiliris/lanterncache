@@ -16,6 +16,8 @@ The status strip shows the current game, why new starts are blocked, and the tim
 
 ## Night window
 
+See [Activity history](Activity-history) for persistent actions, observed sessions, retained log excerpts and their limits.
+
 Default: **01:00–07:00, Europe/Brussels**. Configure `TZ`, `NIGHT_START` and `NIGHT_END` in `.env`, then recreate the UI with `docker compose up -d ui`. The window must satisfy `0 <= NIGHT_START < NIGHT_END <= 24`; crossing midnight is not supported.
 
 In Docker mode the UI runs the scheduler. It can start once per local calendar date within the window if credentials and game selections exist. Starting the UI during the window can start that day's preparation. There is no catch-up download outside the window. A stopped job does not automatically resume later the same day.

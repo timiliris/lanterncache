@@ -5,7 +5,7 @@ Small, focused pull requests are welcome: fixes, translations, installation docu
 ## Development checks
 
 ```sh
-python -m py_compile server.py runtime.py catalog.py docker_backend.py scripts/check-install.py
+python -m py_compile server.py runtime.py catalog.py activity.py docker_backend.py scripts/check-install.py
 python -m unittest discover -s tests -v
 python scripts/check-translations.py
 node scripts/test-i18n.cjs

@@ -17,6 +17,7 @@ from urllib.parse import urlsplit
 from runtime import BASE, CACHE_ROOT, ACCESS_LOG, MODE, TIMEZONE, CACHE_IP, HOST_LABEL, CAPACITY, CONFIG, PUBLIC_ORIGINS, ALLOWED_HOSTS
 from docker_backend import Backend
 from catalog import Catalog, selection
+from activity import Activity
 
 ROOT = Path(__file__).parent
 TOKEN = secrets.token_hex(32)
@@ -27,6 +28,7 @@ PORT = int(os.environ.get('PORT', '8088'))
 BIND = os.environ.get('BIND', '127.0.0.1')
 BACKEND = Backend() if MODE=='docker' else None
 CATALOG = Catalog()
+ACTIVITY = Activity()
 
 def run(*args, timeout=8):
     try:
@@ -124,8 +126,9 @@ def sampler():
                   'disk':{'total':usage.total,'used':usage.used,'free':usage.free},
                   **runtime_state,'games':games,
                   'hitBytes':hits,'missBytes':misses,'sampleRequests':len(recent),
-                  'recent':recent[-8:][::-1], 'history':list(history),'speed':history[-1]['mbps'],
+                  'recent':recent[-40:][::-1], 'history':list(history),'speed':history[-1]['mbps'],
                   'cacheIp':CACHE_IP,'host':HOST_LABEL,'config':CONFIG,'csrf':TOKEN}
+            ACTIVITY.observe(data)
             with LOCK: STATE=data
         except Exception as exc:
             with LOCK: STATE=dict(STATE,error=str(exc))
@@ -138,6 +141,9 @@ class Handler(BaseHTTPRequestHandler):
             return name is not None and name.lower() in ALLOWED_HOSTS
         except ValueError: return False
     def send(self, code, data, kind='application/json; charset=utf-8'):
+        if getattr(self,'audit_action',False):
+            try: ACTIVITY.action(self.path,code,self.audit_data)
+            except OSError: pass
         body=json.dumps(data,ensure_ascii=False).encode() if isinstance(data,dict) else data
         self.send_response(code)
         self.send_header('Content-Type',kind)
@@ -153,6 +159,10 @@ class Handler(BaseHTTPRequestHandler):
         if self.path=='/api/state':
             with LOCK: data=dict(STATE)
             return self.send(200,data)
+        if self.path=='/api/activity': return self.send(200,{'events':ACTIVITY.list(),'limit':200})
+        if re.fullmatch(r'/api/activity/[a-f0-9]{32}',self.path):
+            item=ACTIVITY.detail(self.path.rsplit('/',1)[1])
+            return self.send(200,{'event':item}) if item else self.send(404,{'error':'Unknown event'})
         assets={'/':'index.html','/app.js':'app.js','/style.css':'style.css','/i18n.js':'i18n.js','/ux.js':'ux.js','/assets/lanterncache-icon.png':'assets/lanterncache-icon.png'}
         # Translation filenames are enumerated, never arbitrary filesystem paths.
         for catalog in (ROOT/'locales').glob('*.json'):
@@ -178,6 +188,8 @@ class Handler(BaseHTTPRequestHandler):
             if not 0<=length<=4096: raise ValueError('Requete trop longue')
             data=json.loads(self.rfile.read(length) or '{}')
             if not isinstance(data,dict): raise ValueError('Invalid request')
+            if self.path in ('/api/start','/api/check','/api/stop','/api/schedule','/api/selection'):
+                self.audit_action=True;self.audit_data=data
             if self.path in ('/api/start','/api/check'):
                 selected=selection(BASE)
                 if not selected: raise ValueError('selection_empty')

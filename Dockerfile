@@ -1,7 +1,7 @@
 FROM python:3.12-slim
 RUN apt-get update && apt-get install -y --no-install-recommends tzdata coreutils util-linux ca-certificates && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
-COPY server.py runtime.py docker_backend.py catalog.py index.html app.js style.css i18n.js ux.js ./
+COPY server.py runtime.py docker_backend.py catalog.py activity.py index.html app.js style.css i18n.js ux.js ./
 COPY locales ./locales
 COPY assets ./assets
 ENV BIND=0.0.0.0 PORT=8088 PYTHONUNBUFFERED=1 CACHEFLOW_MODE=docker

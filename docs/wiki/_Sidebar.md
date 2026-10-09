@@ -6,6 +6,7 @@
 - [Configuration](Configuration)
 - [DNS & local address](DNS-and-local-address)
 - [Downloads & schedule](Downloads-and-schedule)
+- [Activity history / Historique](Activity-history)
 - [Troubleshooting](Troubleshooting)
 - [Operations](Operations)
 - [Security](Security)

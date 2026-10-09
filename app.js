@@ -23,7 +23,7 @@ async function refresh(manual=false){
   const res=await fetch('/api/state');if(!res.ok)throw Error(t('server.unavailable'));
   const next=await res.json();if(!next.games){$('#live-label').textContent=t('server.initializing');if(manual)UX.feedback(t('server.initializing'),t('server.help'),'info');return false;}
   if(next.error||Date.now()-Date.parse(next.timestamp)>30000)throw Error(t('server.stale'));
-  observeSession(next);state=next;render();
+  observeSession(next);state=next;render();if(view==='activity')loadHistory();
   if(manual){UX.feedback(t('feedback.refreshed'),t('feedback.libraryCount',{count:state.games.length}));toast(t('feedback.refreshed'));}
   return true;
  }catch(e){
@@ -76,11 +76,11 @@ function render(){
  const log=$('#logs'),bottom=log.scrollHeight-log.scrollTop-log.clientHeight<40;log.textContent=state.logs||t('logs.empty');if(bottom)log.scrollTop=log.scrollHeight;
  const signature=JSON.stringify([state.games,busy,pending,state.online,I.language]);
  if(render.signature!==signature){render.signature=signature;$('#games').innerHTML=state.games.map(g=>`<article class="game-card"><div class="game-art"><img src="https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/${g.id}/library_600x900.jpg" alt="${esc(g.name)}" loading="lazy"><span class="game-badge ${g.filled?'filled':''}">${esc(t('game.status.'+(g.status||'unknown')))}</span></div><div class="game-body"><span class="card-platform">STEAM / WINDOWS</span><h3>${esc(g.name)}</h3><div class="game-genre">${esc(t('genre.'+g.id)==='genre.'+g.id?('Steam #'+g.id):t('genre.'+g.id))}</div><div class="game-size"><span>${t('game.depots')}</span><strong>${g.observedDepots?g.completedDepots+' / '+g.observedDepots:'—'}</strong></div><label class="night-choice"><input type="checkbox" data-game="${g.id}" ${g.selected?'checked':''} ${pending||busy?'disabled':''}> ${t('game.night')}</label><button class="button" data-start="${g.id}" ${busy||pending||!state.online?'disabled':''}>↧ ${g.filled?t('update'):t('game.start')}</button></div></article>`).join('')||'<div class="empty">'+esc(t('games.empty'))+'</div>';}
- $('#requests').innerHTML=state.recent.length?state.recent.slice(0,4).map(r=>`<div class="request-row"><span class="cache-tag ${r.cache==='HIT'?'':'miss'}">${esc(r.cache||'—')}</span><code>depot ${esc(r.path.split('/')[2]||'')}</code><span>${esc(r.time.split(':').slice(1,3).join(':'))}</span><span class="request-size">${(r.bytes/1024**2).toLocaleString(I.locale,{maximumFractionDigits:2})} ${t('unit.mib')}</span></div>`).join(''):'<div class="empty">'+t('activity.empty')+'</div>';
+ $('#requests').innerHTML=state.recent.length?state.recent.slice(0,view==='activity'?40:4).map(r=>`<div class="request-row"><span class="cache-tag ${r.cache==='HIT'?'':'miss'}">${esc(r.cache||'—')}</span><code>depot ${esc(r.path.split('/')[2]||'')}</code><span>${esc(r.time.split(':').slice(1,3).join(':'))}</span><span class="request-size">${(r.bytes/1024**2).toLocaleString(I.locale,{maximumFractionDigits:2})} ${t('unit.mib')}</span></div>`).join(''):'<div class="empty">'+t('activity.empty')+'</div>';
  const h=state.history,max=Math.max(10,...h.map(p=>p.mbps));const points=h.map((p,i)=>`${i/Math.max(1,h.length-1)*640},${100-p.mbps/max*85}`);$('#chart-line').setAttribute('d',points.length?'M'+points.join(' L'):'');$('#chart-fill').setAttribute('d',points.length?'M0,110 L'+points.join(' L')+' L640,110 Z':'');$('#chart-start').textContent=h[0]?.time||t('activity.start');
  $('.feature-index').textContent=(featured?String(state.games.findIndex(g=>g.id===526870)+1).padStart(2,'0'):'—')+' / '+String(state.games.length).padStart(2,'0');$('.count').textContent=String(state.games.length).padStart(2,'0');$('.nav-item i').textContent=state.games.length;
 }
-function setView(next){view=next;document.body.dataset.view=next;const show={overview:['overview-area','games-area','activity-area','planning-area','logs-area'],games:['games-area'],activity:['activity-area','logs-area'],planning:['planning-area']}[next];for(const id of ['overview-area','games-area','activity-area','planning-area','logs-area'])$('#'+id).classList.toggle('hidden',!show.includes(id));$('.lower-grid').classList.toggle('hidden',!show.includes('activity-area')&&!show.includes('planning-area'));document.querySelectorAll('.nav-item').forEach(b=>b.classList.toggle('selected',b.dataset.view===next));$('#page-title').textContent=t('page.'+next+'.title');$('#page-description').textContent=t('page.'+next+'.description',{start:cfg().nightStart,end:cfg().nightEnd,zone:cfg().timezone});$('#breadcrumb').textContent=t('nav.'+next);window.scrollTo({top:0,behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth'})}
+function setView(next){view=next;document.body.dataset.view=next;if(next==='activity')loadHistory();if(state)render();const show={overview:['overview-area','games-area','activity-area','planning-area','logs-area'],games:['games-area'],activity:['activity-area','logs-area','history-area'],planning:['planning-area']}[next];for(const id of ['overview-area','games-area','activity-area','planning-area','logs-area','history-area'])$('#'+id).classList.toggle('hidden',!show.includes(id));$('.lower-grid').classList.toggle('hidden',!show.includes('activity-area')&&!show.includes('planning-area'));document.querySelectorAll('.nav-item').forEach(b=>b.classList.toggle('selected',b.dataset.view===next));$('#page-title').textContent=t('page.'+next+'.title');$('#page-description').textContent=t('page.'+next+'.description',{start:cfg().nightStart,end:cfg().nightEnd,zone:cfg().timezone});$('#breadcrumb').textContent=t('nav.'+next);window.scrollTo({top:0,behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth'})}
 document.querySelectorAll('[data-view]').forEach(b=>b.addEventListener('click',()=>setView(b.dataset.view)));
 $('#hero-games').addEventListener('click',()=>setView('games'));$('#refresh').addEventListener('click',()=>refresh(true));
 $('#games').addEventListener('click',e=>{const b=e.target.closest('[data-start]');if(b)action('start',{id:Number(b.dataset.start)})});
@@ -97,3 +97,35 @@ I.init().then(()=>{refresh();setInterval(refresh,5000)}).catch(()=>toast('Transl
 $('#check-steam').addEventListener('click',()=>action('check'));
 
 $('#feedback-logs').addEventListener('click',()=>setView('activity'));
+
+let historyEvents=[],historyFilter='all',historyVisible=20,historyLoading=false;
+function historyTime(value){return new Date(value).toLocaleString(I.locale,{dateStyle:'short',timeStyle:'medium'});}
+function renderHistory(){
+ const events=historyEvents.filter(e=>historyFilter==='all'||(historyFilter==='failed'?e.status==='failed':e.kind===historyFilter));
+ $('#history-count').textContent=events.length+' / 200';
+ $('#history-list').innerHTML=events.slice(0,historyVisible).map(e=>{
+  const game=state?.games.find(g=>g.id===e.app)?.name||(e.app?'Steam #'+e.app:'');
+  const title=e.kind==='session'?t(e.mode==='check'?'history.checkSession':'history.downloadSession'):t('history.action.'+e.action);
+  const scope=e.kind==='session'?(e.games||[]).join(' · '):game||(typeof e.enabled==='boolean'?t(e.enabled?'history.enabled':'history.disabled'):'');
+  return `<details class="history-event" data-event-id="${esc(e.id)}"><summary><span class="history-event-icon ${e.status==='failed'?'error':''}">${e.kind==='session'?'↧':'↗'}</span><div class="history-event-main"><strong>${esc(title)}</strong><span>${esc(scope||t('history.noGame'))}</span></div><span class="history-result ${esc(e.status)}">${esc(t('history.status.'+e.status))}</span><time>${esc(historyTime(e.at))}</time><span class="history-expand" aria-hidden="true">⌄</span></summary><div class="history-event-detail"><p>${esc(t('history.observedAt'))} ${esc(historyTime(e.at))}${e.endedAt?' · '+esc(t('history.endedAt'))+' '+esc(historyTime(e.endedAt)):''}</p><p>${esc(t(e.kind==='session'?'history.logNote':'history.actionNote'))}</p><pre data-history-log>${esc(t('history.loading'))}</pre>${e.kind==='session'?'<button class="button ghost" data-copy-history disabled>'+esc(t('history.copy'))+'</button>':''}</div></details>`;
+ }).join('')||'<p class="empty">'+esc(t('history.empty'))+'</p>';
+ $('#history-more').hidden=events.length<=historyVisible;
+}
+async function loadHistory(){
+ if(historyLoading)return;historyLoading=true;
+ try{const res=await fetch('/api/activity');if(!res.ok)throw Error();const data=await res.json();
+ const signature=JSON.stringify(data.events.map(({logs,...event})=>event));
+ if(signature!==loadHistory.signature){loadHistory.signature=signature;historyEvents=data.events;renderHistory();}else{$('#history-count').textContent=historyEvents.filter(e=>historyFilter==='all'||(historyFilter==='failed'?e.status==='failed':e.kind===historyFilter)).length+' / 200';}
+ }catch{$('#history-count').textContent=t('history.unavailable');}finally{historyLoading=false;}
+}
+$('#history-area').addEventListener('toggle',async e=>{
+ const item=e.target;if(!item.matches('details[data-event-id]')||!item.open||item.dataset.loaded)return;
+ const log=item.querySelector('[data-history-log]');
+ try{const res=await fetch('/api/activity/'+item.dataset.eventId);if(!res.ok)throw Error();const {event}=await res.json();log.textContent=event.logs||t('history.noLog');const copyButton=item.querySelector('[data-copy-history]');if(copyButton)copyButton.disabled=!event.logs;item.dataset.loaded='true';}
+ catch{log.textContent=t('history.unavailable');}
+},true);
+document.querySelectorAll('[data-history-filter]').forEach(b=>b.addEventListener('click',()=>{historyFilter=b.dataset.historyFilter;historyVisible=20;document.querySelectorAll('[data-history-filter]').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));renderHistory();}));
+$('#history-more').addEventListener('click',()=>{historyVisible+=20;renderHistory();});
+document.addEventListener('cacheflow:language',()=>{if(historyEvents.length)renderHistory();});
+
+$('#history-list').addEventListener('click',e=>{if(e.target.closest('[data-copy-history]'))copy(e.target.closest('details').querySelector('[data-history-log]').textContent);});

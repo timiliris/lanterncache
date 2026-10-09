@@ -59,6 +59,8 @@ Anyone who can reach the dashboard can control downloads. The Docker installatio
 
 ## Understanding the numbers
 
+The Activity & logs view keeps the last 200 UI requests and observed sessions on the server, with filters and expandable log excerpts. History survives restarts and begins when the feature is installed. See [activity history](docs/wiki/Activity-history.md) for retention and observation limits.
+
 Hit ratio describes bytes in a recent sample of successful HTTP responses, not lifetime totals. Throughput counts completed responses and may spike when a large response finishes. Game status compares the most recently observed local manifest per depot with SteamPrefill preparation history. All observed matches show Preparation recorded, some show Partially prepared, and absent evidence shows Not verified. This is not proof of complete on-disk content or the latest upstream version; no per-game byte totals are invented. SteamPrefill checks the current version during preparation. The first download of content still uses your Internet connection.
 
 SteamPrefill requires a Steam account with access to the selected games. LanternCache cannot remove ownership requirements, cache arbitrary encrypted HTTPS traffic, or guarantee that every platform download uses a cache-compatible endpoint.
