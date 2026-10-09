@@ -146,6 +146,27 @@ class BackendTests(unittest.TestCase):
         with patch.object(backend, 'api', return_value=frame(1, 'Downloading\n') + frame(2, 'Retrying\n')):
             self.assertEqual(backend.log_text('test'), 'Downloading\nRetrying\n')
 
+    def test_current_game_survives_progress_pushing_header_out_of_tail(self):
+        name = 'context-test'
+        backend._LOG_START.pop(name, None)
+        with patch.object(backend, 'api', side_effect=[b'Starting Valheim\nDownloading\n', b'Progress\n' * 1100]) as api:
+            backend.log_text(name)
+            logs = backend.log_text(name)
+        self.assertIn('Starting Valheim', logs)
+        self.assertIn('tail=all', api.call_args_list[0].args[1])
+        self.assertIn('tail=1000', api.call_args_list[1].args[1])
+        self.assertLessEqual(len(logs.splitlines()), 101)
+        backend._LOG_START.pop(name, None)
+
+    def test_finish_reads_full_log_to_detect_earlier_skipped_games(self):
+        self.job()
+        logs = 'Starting Valheim\nUnable to download manifests! Skipping app...\n' + 'Progress\n' * 1100
+        with patch.object(backend, 'log_text', return_value=logs) as read:
+            self.engine._finish({'State': {'Running': False, 'ExitCode': 0}})
+        read.assert_called_once_with(backend.JOB_CONTAINER, full=True)
+        self.assertEqual(json.loads(self.engine.marker.read_text())['status'], 'failed')
+        self.assertIn('Skipping app', (self.base / 'last-job.log').read_text())
+
     def test_unmanaged_container_collision_is_not_removed(self):
         directory = self.job()
         existing = {'State': {'Running': False}, 'Config': {'Labels': {'other.app': 'true'}}}

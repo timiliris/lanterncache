@@ -23,6 +23,7 @@ class HttpSecurityTests(unittest.TestCase):
     def setUp(self):
         self.backend = Mock()
         self.patches = [patch.object(server, 'BACKEND', self.backend),
+                        patch.object(server, 'selection', return_value=[526870, 322330]),
                         patch.object(server, 'ALLOWED_HOSTS', {'lanterncache.local', '127.0.0.1'}),
                         patch.object(server, 'PUBLIC_ORIGINS', set()),
                         patch.object(server, 'TOKEN', 'test-csrf-token'),
@@ -96,6 +97,19 @@ class HttpSecurityTests(unittest.TestCase):
         handler.do_POST()
         self.assertEqual(self.status(handler), 200)
         self.backend.start.assert_called_once_with(526870, check=False)
+
+    def test_selected_game_outside_old_presets_can_start(self):
+        handler = self.request(data={'id': 322330})
+        handler.do_POST()
+        self.assertEqual(self.status(handler), 200)
+        self.backend.start.assert_called_once_with(322330, check=False)
+
+    def test_removed_game_cannot_start_from_stale_browser(self):
+        with patch.object(server, 'selection', return_value=[322330]):
+            handler = self.request(data={'id': 526870})
+            handler.do_POST()
+        self.assertEqual(self.status(handler), 400)
+        self.backend.start.assert_not_called()
 
     def test_configured_https_origin_is_accepted(self):
         with patch.object(server, 'PUBLIC_ORIGINS', {'https://lanterncache.local'}):

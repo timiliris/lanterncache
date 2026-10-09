@@ -1,7 +1,7 @@
 {
   "planning.note": "Seuls les jeux cochés sont préparés. À la fin du créneau, le remplissage nocturne s’arrête et les fichiers déjà en cache restent disponibles.",
-  "dialog.note": "Les jeux sélectionnés sont ajoutés à la préparation nocturne. Les jeux suivis peuvent être contrôlés directement ici.",
-  "games.note": "« Déjà rempli » indique un téléchargement réussi. Les nouvelles versions sont vérifiées au prochain lancement.",
+  "dialog.note": "Tous les jeux sélectionnés apparaissent automatiquement ici, avec leur jaquette. La synchronisation se fait toutes les 5 secondes ; les noms peuvent arriver ensuite.",
+  "games.note": "La liste suit ta sélection SteamPrefill. Les statuts comparent les manifestes locaux à l’historique de préparation ; ils ne garantissent pas que la dernière version est entièrement en cache.",
   "dialog.description": "Ouvre la sélection Steam sur ton serveur avec cette commande dans un terminal :",
   "games.subtitle": "PRÉPARATION MANUELLE / SYNCHRONISATION NOCTURNE",
   "page.overview.description": "Tes jeux, tes téléchargements, ton réseau.",
@@ -72,7 +72,7 @@
   "engine.detailBusy": "Le journal suit la préparation en direct.",
   "engine.detailIdle": "Aucun téléchargement en cours.",
   "engine.paused": "Programmation en pause",
-  "hero.filled": "Déjà rempli sur {host} · Les nouvelles versions sont vérifiées au lancement.",
+  "hero.filled": "Préparation enregistrée sur {host} · Les versions sont revérifiées au lancement.",
   "hero.prepare": "Prépare les fichiers sur {host} avant ta prochaine session.",
   "hero.start": "Préparer Satisfactory",
   "hero.busy": "PRÉPARATION EN COURS",
@@ -129,5 +129,16 @@
   "hero.checking": "VÉRIFICATION STEAM",
   "logs.checking": "Vérification Steam en cours · Aucun téléchargement de jeu",
   "dialog.docker": "Sur le serveur, ouvre un terminal dans le dossier du projet et exécute cette commande :",
-  "dialog.ssh": "Depuis ton ordinateur, exécute cette commande dans PowerShell ou un terminal pour ouvrir la sélection Steam sur le serveur :"
+  "dialog.ssh": "Depuis ton ordinateur, exécute cette commande dans PowerShell ou un terminal pour ouvrir la sélection Steam sur le serveur :",
+  "game.status.prepared": "✓ Préparation enregistrée",
+  "game.status.partial": "◐ Préparation partielle",
+  "game.status.unknown": "État non vérifié",
+  "game.status.checking": "Vérification en cours",
+  "game.status.downloading": "Téléchargement en cours",
+  "game.status.failed": "Échec de préparation",
+  "game.depots": "Manifestes préparés / observés",
+  "games.empty": "Aucun jeu sélectionné dans SteamPrefill. Utilise « Ajouter un jeu » pour ouvrir la sélection.",
+  "hero.unselected": "Satisfactory ne fait pas partie de la sélection SteamPrefill.",
+  "server.stale": "Les données du serveur ne sont plus à jour. Réessaie après quelques instants.",
+  "logs.external": "Session lancée dans un terminal : arrêt depuis ce terminal"
 }

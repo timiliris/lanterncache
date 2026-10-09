@@ -51,7 +51,7 @@ docker compose run --rm prefill select-apps
 
 Steam authentication and Steam Guard happen in your terminal. The browser never asks for your Steam password. Configure client DNS as described in the installation guide: opening the dashboard alone does not activate caching on your PC.
 
-The initial dashboard includes Satisfactory, Apex Legends, Call of Duty and Aimlabs. SteamPrefill can select other games for overnight preparation; adding their cards and individual controls currently requires extending the game catalog in `server.py` and the translation catalogs.
+The library automatically follows `selectedAppsToPrefill.json`, including additions and removals, on the next 5-second refresh. Names are fetched from the Steam Store in the background and cached locally; artwork uses Steam CDN app IDs. If metadata is unavailable, the Steam app ID remains visible. No code changes are needed to add selected games. Deselecting a card removes it from this selection; use SteamPrefill to select it again.
 
 ## Private-network access
 
@@ -59,7 +59,7 @@ Anyone who can reach the dashboard can control downloads. The Docker installatio
 
 ## Understanding the numbers
 
-Hit ratio describes bytes in a recent sample of successful HTTP responses, not lifetime totals. Throughput counts completed responses and may spike when a large response finishes. A previously filled depot is historical information, not proof the latest update is cached. SteamPrefill checks the current version during preparation. The first download of content still uses your Internet connection.
+Hit ratio describes bytes in a recent sample of successful HTTP responses, not lifetime totals. Throughput counts completed responses and may spike when a large response finishes. Game status compares the most recently observed local manifest per depot with SteamPrefill preparation history. All observed matches show Preparation recorded, some show Partially prepared, and absent evidence shows Not verified. This is not proof of complete on-disk content or the latest upstream version; no per-game byte totals are invented. SteamPrefill checks the current version during preparation. The first download of content still uses your Internet connection.
 
 SteamPrefill requires a Steam account with access to the selected games. LanternCache cannot remove ownership requirements, cache arbitrary encrypted HTTPS traffic, or guarantee that every platform download uses a cache-compatible endpoint.
 

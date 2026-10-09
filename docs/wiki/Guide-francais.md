@@ -50,7 +50,7 @@ Les cases de la bibliothèque choisissent les jeux nocturnes. « Préparer maint
 
 La plage par défaut est **01:00–07:00 Europe/Brussels**. Le fuseau et les heures se configurent dans `.env`, puis en recréant l'interface. Le bouton de planification active ou désactive les prochaines sessions ; pour interrompre une session déjà lancée, utilisez « Arrêter ». Les fichiers en cache restent disponibles.
 
-« Déjà rempli » indique une préparation réussie auparavant, pas une garantie que la toute dernière mise à jour est présente. Le prochain remplissage vérifie les versions. La bibliothèque initiale contient quatre jeux ; les autres jeux sélectionnés dans SteamPrefill peuvent participer aux sessions nocturnes, mais leurs cartes nécessitent une modification du catalogue.
+La bibliothèque suit automatiquement la sélection SteamPrefill toutes les 5 secondes, ajouts et retraits compris. Les noms arrivent depuis Steam et sont mémorisés ; les jaquettes utilisent l’identifiant du jeu. Décocher un jeu le retire de la sélection et de la bibliothèque : sélectionnez-le à nouveau dans SteamPrefill pour le retrouver. « Préparation enregistrée » signifie que les manifestes locaux observés correspondent à l’historique, « partielle » que certains correspondent et « non vérifié » que les preuves manquent. Le compteur concerne les manifestes, pas le volume réel en cache ni une garantie de la dernière version. Une session lancée dans un terminal apparaît comme active ; arrêtez-la depuis ce terminal.
 
 ## Adresse simple et dépannage
 

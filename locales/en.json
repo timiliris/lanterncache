@@ -1,7 +1,7 @@
 {
   "planning.note": "Only selected games are prepared. At the end of the scheduled window, nightly prefill stops and cached files remain available.",
-  "dialog.note": "Selected games are added to nightly prefill. Tracked games can be controlled directly here.",
-  "games.note": "“Cached” means a successful prefill. New versions are checked on the next run.",
+  "dialog.note": "All selected games appear here automatically with their artwork. Selection refreshes every 5 seconds; names may arrive later.",
+  "games.note": "This list follows your SteamPrefill selection. Status compares local manifests with preparation history; it does not guarantee the latest version is fully cached.",
   "dialog.description": "Open Steam game selection on your server with this command in a terminal:",
   "games.subtitle": "MANUAL PREFILL / NIGHTLY SYNC",
   "page.overview.description": "Your games. Your downloads. Your network.",
@@ -72,7 +72,7 @@
   "engine.detailBusy": "Follow prefill progress in the live log.",
   "engine.detailIdle": "No download running.",
   "engine.paused": "Schedule paused",
-  "hero.filled": "Cached on {host} · New versions are checked when you start prefill.",
+  "hero.filled": "Preparation recorded on {host} · Versions are rechecked when prefill starts.",
   "hero.prepare": "Prepare files on {host} before your next session.",
   "hero.start": "Prepare Satisfactory",
   "hero.busy": "PREFILL IN PROGRESS",
@@ -129,5 +129,16 @@
   "hero.checking": "CHECKING STEAM",
   "logs.checking": "Checking Steam · No game download",
   "dialog.docker": "On your server, open a terminal in the project directory and run this command:",
-  "dialog.ssh": "From your computer, run this command in PowerShell or a terminal to open Steam selection on the server:"
+  "dialog.ssh": "From your computer, run this command in PowerShell or a terminal to open Steam selection on the server:",
+  "game.status.prepared": "✓ Preparation recorded",
+  "game.status.partial": "◐ Partially prepared",
+  "game.status.unknown": "Not verified",
+  "game.status.checking": "Checking manifests",
+  "game.status.downloading": "Downloading",
+  "game.status.failed": "Preparation failed",
+  "game.depots": "Prepared / observed manifests",
+  "games.empty": "No SteamPrefill games selected. Use “Add a game” to open selection.",
+  "hero.unselected": "Satisfactory is not in the SteamPrefill selection.",
+  "server.stale": "Server data is no longer up to date. Please retry shortly.",
+  "logs.external": "Terminal session: stop it from that terminal"
 }

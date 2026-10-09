@@ -26,3 +26,5 @@ web-run.*/
 *.gz
 style.previous.css
 .github/workflows/checks.yml
+
+ui-catalog.json

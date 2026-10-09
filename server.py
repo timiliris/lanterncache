@@ -16,6 +16,7 @@ from zoneinfo import ZoneInfo
 from urllib.parse import urlsplit
 from runtime import BASE, CACHE_ROOT, ACCESS_LOG, MODE, TIMEZONE, CACHE_IP, HOST_LABEL, CAPACITY, CONFIG, PUBLIC_ORIGINS, ALLOWED_HOSTS
 from docker_backend import Backend
+from catalog import Catalog, selection
 
 ROOT = Path(__file__).parent
 TOKEN = secrets.token_hex(32)
@@ -25,12 +26,7 @@ STATE = {}
 PORT = int(os.environ.get('PORT', '8088'))
 BIND = os.environ.get('BIND', '127.0.0.1')
 BACKEND = Backend() if MODE=='docker' else None
-GAMES = [
-    {'id':526870,'name':'Satisfactory','genre':'Construction · Coopération','size':'12,1 Gio','depot':'526871'},
-    {'id':1172470,'name':'Apex Legends','genre':'Battle royale · Multijoueur','size':'76,7 Gio','depot':'1172471'},
-    {'id':1938090,'name':'Call of Duty','genre':'FPS · Multijoueur','size':'234 Gio','depot':'1938091'},
-    {'id':714010,'name':'Aimlabs','genre':'Entraînement · Précision','size':'9,6 Gio','depot':'714011'},
-]
+CATALOG = Catalog()
 
 def run(*args, timeout=8):
     try:
@@ -58,6 +54,8 @@ def sampler():
     offset = 0
     disk_bytes = 0
     du_at = 0
+    log_container = None
+    current_start = None
     while True:
         started = time.monotonic()
         try:
@@ -98,25 +96,30 @@ def sampler():
                 active=['lancache-web-prefill']
             journal = run('journalctl','-u','lancache-web-prefill.service','-u','lancache-prefill.service','-n','70','--no-pager','-o','cat')
             if active and active[0] in containers:
-                journal = run('docker','logs','--tail','55',active[0]) or journal
+                job=active[0]
+                job_logs=run('docker','logs',*(['--tail','1000'] if job==log_container else []),job)
+                if job != log_container: current_start=None
+                starts=re.findall(r'(?:^|\n)([^\n]*Starting [^\n]+)',job_logs)
+                if starts: current_start=starts[-1]
+                log_container=job
+                journal=((current_start+'\n') if current_start else '')+'\n'.join(job_logs.splitlines()[-100:]) if job_logs else journal
             journal = re.sub(r'\x1b\[[0-9;]*[a-zA-Z]','',journal)
             lines = journal.splitlines()
             starts = [i for i,line in enumerate(lines) if line.startswith('Started ')]
             if starts: journal = '\n'.join(lines[starts[-1]:])
             # Never expose authentication tokens, even if an upstream tool logs one.
             journal = '\n'.join(x for x in journal.splitlines() if not re.search(r'token|password|refresh_token|access_token',x,re.I))
-            selected=read_json(BASE/'prefill/selectedAppsToPrefill.json',[])
-            completed=read_json(BASE/'prefill/successfullyDownloadedDepots.json',{})
-            games=[dict(g,selected=g['id'] in selected,filled=g['depot'] in completed) for g in GAMES]
             next_time=run('systemctl','show','lancache-prefill.timer','-p','NextElapseUSecRealtime','--value')
             runtime_state={'online':units.get('lancache.service',{}).get('ActiveState')=='active' and 'steamcache-dns-1' in containers,
                            'nightEnabled':units.get('lancache-prefill.timer',{}).get('ActiveState')=='active',
                            'nextRun':next_time,'active':active,'logs':journal,
-                           'jobMode':'check' if any('web' in job for job in active) and (BASE/'ui-mode').exists() and (BASE/'ui-mode').read_text().strip()=='check' else 'download'}
+                           'jobMode':'check' if active and '--no-download' in run('docker','inspect',active[0],'--format','{{json .Config.Cmd}}') else 'download',
+                           'canStop':bool(any(units.get(unit,{}).get('ActiveState') in ('active','activating') for unit in ['lancache-web-prefill.service','lancache-prefill.service']) or 'steam-prefill-satisfactory' in active)}
             if BACKEND:
                 runtime_state=BACKEND.snapshot(now)
                 runtime_state['logs']=re.sub(r'\x1b\[[0-9;]*[a-zA-Z]','',runtime_state['logs'])
                 runtime_state['logs']='\n'.join(line for line in runtime_state['logs'].splitlines() if not re.search(r'token|password|refresh_token|access_token',line,re.I))
+            games=CATALOG.games(active=bool(runtime_state['active']),checking=runtime_state['jobMode']=='check',logs=runtime_state['logs'])
             data={'timestamp':now.isoformat(),'cacheBytes':disk_bytes,'capacity':CAPACITY,
                   'disk':{'total':usage.total,'used':usage.used,'free':usage.free},
                   **runtime_state,'games':games,
@@ -176,8 +179,10 @@ class Handler(BaseHTTPRequestHandler):
             data=json.loads(self.rfile.read(length) or '{}')
             if not isinstance(data,dict): raise ValueError('Invalid request')
             if self.path in ('/api/start','/api/check'):
-                app=int(data.get('id',526870 if self.path=='/api/check' else 0))
-                if app not in [g['id'] for g in GAMES]: raise ValueError('Jeu inconnu')
+                selected=selection(BASE)
+                if not selected: raise ValueError('selection_empty')
+                app=int(data.get('id',selected[0] if self.path=='/api/check' else 0))
+                if app not in selected: raise ValueError('Jeu inconnu')
                 with LOCK: busy=STATE.get('active',[])
                 if busy: return self.send(409,{'error':'Un telechargement est deja en cours.'})
                 if BACKEND:
@@ -210,7 +215,7 @@ class Handler(BaseHTTPRequestHandler):
                 return self.send(200,{'message':'Preparation nocturne '+('activee.' if enabled else 'en pause.')})
             if self.path=='/api/selection':
                 app=int(data.get('id',0)); enabled=data.get('enabled')
-                if app not in [g['id'] for g in GAMES] or not isinstance(enabled,bool): raise ValueError('Selection invalide')
+                if app not in selection(BASE) or not isinstance(enabled,bool): raise ValueError('Selection invalide')
                 path=BASE/'prefill/selectedAppsToPrefill.json'
                 current=read_json(path,[])
                 current=list(dict.fromkeys(current+[app])) if enabled else [x for x in current if x!=app]

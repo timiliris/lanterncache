@@ -34,3 +34,5 @@ TRANSLATIONS.md
 LICENSE
 compose.yaml
 .env.example
+
+ui-catalog.json

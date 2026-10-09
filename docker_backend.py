@@ -48,15 +48,25 @@ def api(method, path, body=None, raw=False, allow_missing=False):
 
 def inspect(name): return api('GET','/containers/'+urllib.parse.quote(name,safe='')+'/json',allow_missing=True)
 
-def log_text(name):
-    content=api('GET',f'/containers/{urllib.parse.quote(name,safe="")}/logs?stdout=1&stderr=1&tail=100',raw=True,allow_missing=True)
+_LOG_START={}
+
+def log_text(name, full=False):
+    count='all' if full or name not in _LOG_START else '1000'
+    content=api('GET',f'/containers/{urllib.parse.quote(name,safe="")}/logs?stdout=1&stderr=1&tail={count}',raw=True,allow_missing=True)
     if content is None: return ''
     # Docker's non-TTY log protocol prefixes each frame with an 8-byte header.
     parts=[]; offset=0
     while offset+8<=len(content) and content[offset] in (0,1,2) and content[offset+1:offset+4]==b'\0\0\0':
         length=int.from_bytes(content[offset+4:offset+8],'big')
         parts.append(content[offset+8:offset+8+length]); offset+=8+length
-    return b''.join(parts).decode('utf8','replace') if parts else content.decode('utf8','replace')
+    result=b''.join(parts).decode('utf8','replace') if parts else content.decode('utf8','replace')
+    if full: return result
+    clean=re.sub(r'\x1b\[[0-9;]*[a-zA-Z]','',result)
+    starts=re.findall(r'(?:^|\n)([^\n]*Starting [^\n]+)',clean)
+    if starts: _LOG_START[name]=starts[-1]
+    else: _LOG_START.setdefault(name,'')
+    if not _LOG_START[name] and len(result.splitlines())<=100: return result
+    return _LOG_START[name]+'\n'+'\n'.join(result.splitlines()[-100:])
 
 def load(path, default):
     try: return json.loads(path.read_text())
@@ -97,6 +107,7 @@ class Backend:
                           'RestartPolicy':{'Name':'no'}},
         })
         api('POST','/containers/'+created['Id']+'/start')
+        _LOG_START.pop(JOB_CONTAINER,None)
 
     def start(self, app, check=False, night=False):
         with self.lock:
@@ -129,8 +140,9 @@ class Backend:
         if not marker or marker.get('finished') or not container or container['State']['Running']: return
         directory=BASE/marker['directory']
         if not directory.resolve().is_relative_to((BASE/'jobs').resolve()): raise ValueError('Invalid job path')
-        logs=log_text(JOB_CONTAINER)
-        (BASE/'last-job.log').write_text(logs,encoding='utf8')
+        logs=log_text(JOB_CONTAINER,full=True)
+        summary=[line for line in logs.splitlines() if re.search(r'Starting |Unexpected download error|Unable to download manifests|Skipping app',line)]
+        (BASE/'last-job.log').write_text('\n'.join(summary+logs.splitlines()[-100:]),encoding='utf8')
         failed=container['State'].get('ExitCode',1)!=0 or bool(re.search(r'Unexpected download error|Unable to download manifests|SteamLoginException|Skipping app',logs))
         result=load(directory/'successfullyDownloadedDepots.json',{})
         account=directory/'account.config'
