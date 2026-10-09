@@ -1,5 +1,27 @@
 /* Presentation helpers. Network requests and download decisions stay in app.js. */
 (() => {
+  const trigger=document.getElementById('language-trigger');
+  const menu=document.getElementById('language-menu');
+  const selector=document.getElementById('language');
+  const options=Array.from(menu.querySelectorAll('[data-language]'));
+  function close(restore=false){menu.hidden=true;trigger.setAttribute('aria-expanded','false');if(restore)trigger.focus();}
+  function open(){menu.hidden=false;trigger.setAttribute('aria-expanded','true');options.find(b=>b.dataset.language===selector.value)?.focus();}
+  function sync(){document.getElementById('language-current').textContent=selector.selectedOptions[0].textContent;options.forEach(b=>b.setAttribute('aria-checked',String(b.dataset.language===selector.value)));}
+  trigger.addEventListener('click',()=>menu.hidden?open():close());
+  trigger.addEventListener('keydown',e=>{if(e.key==='ArrowDown'||e.key==='ArrowUp'){e.preventDefault();open();}});
+  options.forEach(button=>button.addEventListener('click',()=>{selector.value=button.dataset.language;selector.dispatchEvent(new Event('change',{bubbles:true}));sync();close(true);}));
+  menu.addEventListener('keydown',e=>{const index=options.indexOf(document.activeElement);let next;
+    if(e.key==='ArrowDown')next=(index+1)%options.length;
+    if(e.key==='ArrowUp')next=(index+options.length-1)%options.length;
+    if(e.key==='Home')next=0;if(e.key==='End')next=options.length-1;
+    if(next!==undefined){e.preventDefault();options[next].focus();}
+    if(e.key==='Escape'){e.preventDefault();close(true);}if(e.key==='Tab')close();
+  });
+  document.addEventListener('click',e=>{if(!trigger.parentElement.contains(e.target))close();});
+  document.addEventListener('focusin',e=>{if(!trigger.parentElement.contains(e.target))close();});
+  document.addEventListener('cacheflow:language',sync);
+})();
+(() => {
   'use strict';
   const locks = new Map();
   let lastControl = null, toastTimer, announcementTimer, connectionState;

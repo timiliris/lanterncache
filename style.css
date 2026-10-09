@@ -52,3 +52,20 @@ dialog[open]{animation:cacheflow-dialog .25s var(--ease-out)}
 /* Use the available desktop width and keep library cards comfortably sized. */
 main{max-width:none}
 @media(min-width:1500px){.game-grid{grid-template-columns:repeat(auto-fill,minmax(280px,1fr))}}
+
+/* Custom language menu keeps the same appearance across operating systems. */
+.language-picker{position:relative}
+.language-trigger{display:flex;align-items:center;gap:9px;padding:8px 11px;border:1px solid #30465d;border-radius:8px;background:#101e2d;color:#cbe5f8;font-size:11px;transition:background .18s,border-color .18s}
+.language-trigger:hover,.language-trigger[aria-expanded=true]{background:#182c40;border-color:#5285aa}
+.language-trigger svg{width:14px;height:14px;fill:none;stroke:#81b8df;stroke-width:1.5}
+.language-chevron{color:#7397b5;transition:transform .18s}
+.language-trigger[aria-expanded=true] .language-chevron{transform:rotate(180deg)}
+.language-menu{position:absolute;right:0;top:calc(100% + 9px);width:192px;padding:6px;background:#101c2bf5;border:1px solid #31475e;border-radius:11px;box-shadow:0 14px 40px #0008;backdrop-filter:blur(18px);z-index:40}
+.language-menu[hidden]{display:none}
+.language-menu button{display:flex;align-items:center;gap:11px;width:100%;padding:11px 10px;border:0;border-radius:6px;background:none;color:#a5bbd0;font-size:12px;text-align:left}
+.language-menu button:hover,.language-menu button:focus-visible{background:#20344a;color:#edf6ff;outline:0}
+.language-menu button[aria-checked=true]{background:#172e43;color:#a6ddff}
+.language-code{font:9px Consolas,monospace;letter-spacing:1px;border:1px solid #354a60;border-radius:4px;padding:4px;color:#83a5c2}
+.language-check{margin-left:auto;color:#6bc7ff;visibility:hidden}
+.language-menu button[aria-checked=true] .language-check{visibility:visible}
+@media(max-width:560px){.language-trigger{padding:6px 8px;gap:6px;font-size:10px}.language-trigger svg{display:none}}
