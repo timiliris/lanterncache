@@ -10,7 +10,9 @@ python -m unittest discover -s tests -v
 python scripts/check-translations.py
 node scripts/test-i18n.cjs
 node scripts/test-feedback.cjs
+node scripts/test-chart.cjs
 node --check app.js
+node --check chart.js
 node --check i18n.js
 node --check ux.js
 docker compose --env-file .env.example config --quiet

@@ -1,0 +1,12 @@
+const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict'),path=require('node:path');
+const context=vm.createContext({window:{},document:{getElementById:()=>({addEventListener(){}}),querySelectorAll:()=>[]}});
+vm.runInContext(fs.readFileSync(path.join(__dirname,'../chart.js'),'utf8'),context);
+const geometry=context.window.CacheflowChart.geometry;
+const empty=geometry([]);assert.equal(empty.peak,0);assert.equal(empty.points.length,0);assert.ok(empty.maximum>0);
+const zero=geometry([{mbps:0},{mbps:0}]);assert.equal(zero.average,0);assert.ok(zero.points.every(p=>p.value===0&&p.y===190));
+const samples=[0,5,20].map((second,i)=>({timestamp:`2026-10-09T12:00:${String(second).padStart(2,'0')}Z`,mbps:[0,12,60][i]}));
+const result=geometry(samples);assert.equal(result.peak,60);assert.equal(result.average,24);assert.ok(result.maximum>=60);
+assert.equal(result.points[1].x,225,'Uneven observation intervals must retain their true spacing');
+assert.equal(result.points.at(-1).x,900);assert.ok(result.points.every(p=>Number.isFinite(p.y)&&p.y>=10&&p.y<=190));
+const single=geometry([{mbps:3}]);assert.equal(single.points[0].x,450);assert.ok(Number.isFinite(single.points[0].y));
+console.log('Chart scales, empty traffic, single samples and timestamp spacing passed.');

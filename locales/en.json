@@ -195,5 +195,12 @@
   "history.empty": "No events for this filter. New actions and sessions will appear here.",
   "history.unavailable": "History unavailable. Please try again shortly.",
   "history.noLog": "No log excerpt retained for this event.",
-  "history.copy": "Copy this excerpt"
+  "history.copy": "Copy this excerpt",
+  "chart.current": "Current",
+  "chart.peak": "Peak",
+  "chart.average": "Average",
+  "chart.window": "Chart time window",
+  "chart.aria": "Cache throughput. Use the left and right arrows to explore samples.",
+  "chart.empty": "No measured traffic during this period",
+  "chart.note": "Throughput of completed cache responses · sampled every 5 s · hover or focus the chart to explore"
 }

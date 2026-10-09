@@ -195,5 +195,12 @@
   "history.empty": "Aucun événement pour ce filtre. Les nouvelles actions et sessions apparaîtront ici.",
   "history.unavailable": "Historique indisponible. Réessaie dans quelques instants.",
   "history.noLog": "Aucun extrait de journal conservé pour cet événement.",
-  "history.copy": "Copier cet extrait"
+  "history.copy": "Copier cet extrait",
+  "chart.current": "Actuel",
+  "chart.peak": "Pic",
+  "chart.average": "Moyenne",
+  "chart.window": "Période du graphique",
+  "chart.aria": "Débit du cache. Utilisez les flèches gauche et droite pour explorer les mesures.",
+  "chart.empty": "Aucun trafic mesuré sur cette période",
+  "chart.note": "Débit des réponses terminées du cache · suivi toutes les 5 s · survolez ou sélectionnez le graphique pour explorer"
 }

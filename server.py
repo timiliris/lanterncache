@@ -52,7 +52,8 @@ ACCESS = re.compile(r'^\[([^]]+)\].*?\[([^]]+)\] "(?:GET|HEAD) ([^ ]+) HTTP/[^" 
 
 def sampler():
     global STATE
-    history = collections.deque(maxlen=60)
+    history = collections.deque(maxlen=180)
+    last_sample = None
     offset = 0
     disk_bytes = 0
     du_at = 0
@@ -81,7 +82,10 @@ def sampler():
                             if m and int(m[4]) == 200 and int(m[5]) > 0: new_bytes += int(m[5])
                     offset=end
             except OSError: pass
-            history.append({'time':now.strftime('%H:%M:%S'), 'mbps':round(new_bytes*8/5/1e6,2)})
+            sampled=time.monotonic()
+            elapsed=sampled-last_sample if last_sample is not None else 5
+            last_sample=sampled
+            history.append({'time':now.strftime('%H:%M:%S'), 'timestamp':now.isoformat(), 'mbps':round(new_bytes*8/max(.001,elapsed)/1e6,2)})
             if time.monotonic()-du_at > 60:
                 value = run('du','-s','-B1',str(CACHE_ROOT/'cache'),timeout=20).split()
                 if value: disk_bytes=int(value[0])
@@ -163,7 +167,7 @@ class Handler(BaseHTTPRequestHandler):
         if re.fullmatch(r'/api/activity/[a-f0-9]{32}',self.path):
             item=ACTIVITY.detail(self.path.rsplit('/',1)[1])
             return self.send(200,{'event':item}) if item else self.send(404,{'error':'Unknown event'})
-        assets={'/':'index.html','/app.js':'app.js','/style.css':'style.css','/i18n.js':'i18n.js','/ux.js':'ux.js','/assets/lanterncache-icon.png':'assets/lanterncache-icon.png'}
+        assets={'/':'index.html','/app.js':'app.js','/chart.js':'chart.js','/style.css':'style.css','/i18n.js':'i18n.js','/ux.js':'ux.js','/assets/lanterncache-icon.png':'assets/lanterncache-icon.png'}
         # Translation filenames are enumerated, never arbitrary filesystem paths.
         for catalog in (ROOT/'locales').glob('*.json'):
             if re.fullmatch(r'[a-z]{2}(?:-[A-Z]{2})?',catalog.stem): assets['/locales/'+catalog.name]='locales/'+catalog.name

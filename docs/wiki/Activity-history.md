@@ -2,6 +2,8 @@
 
 Open **Activity & logs** to see the network chart, the 40 latest sampled cache requests, the current download log, and persistent activity history.
 
+The chart offers 5- and 15-minute windows, a labelled throughput scale, current/peak/average values, and point details on hover or with arrow keys after focusing the graph. It uses actual observation timestamps and elapsed sampling time; zero traffic is displayed explicitly. Up to 180 recent samples are kept in memory and reset with the UI service. The chart is not a measurement of the WAN link: it counts completed cache responses, which can create spikes when large responses finish. Scrollbars use the dashboard's dark theme while retaining native browser scrolling.
+
 The history records UI requests (prepare, verify, stop, schedule, selection) and sessions observed by the server sampler. Filter All, Sessions, Actions or Failures, expand an event for details, and copy a session's log excerpt. The list starts when this feature is installed; older sessions are not reconstructed.
 
 ## What the results mean
