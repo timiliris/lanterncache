@@ -94,7 +94,11 @@
     banner.hidden = Boolean(online) || !message;
     document.body.classList.toggle('cache-offline', !online);
     document.body.classList.toggle('state-ready', true);
-    if (connectionState !== online && message && online) announce(message);
+    if (connectionState === false && online) {
+      const restored=window.CacheflowI18n.t('feedback.reconnected');
+      announce(restored);toast(restored);
+    }
+    if (connectionState === true && !online && message) announce(message);
     connectionState = online;
   }
   function setActive(active) {
@@ -110,6 +114,21 @@
     }
     indicator.hidden = !active;
   }
+  function feedback(title, detail='', kind='success', logs=false) {
+    const panel=byId('action-feedback');
+    panel.hidden=false;panel.dataset.kind=kind;
+    panel.setAttribute('role',kind==='error'?'alert':'status');
+    byId('feedback-title').textContent=title;
+    byId('feedback-detail').textContent=detail;
+    byId('feedback-detail').hidden=!detail;
+    byId('feedback-icon').textContent=kind==='pending'?'◌':kind==='error'?'!':kind==='info'?'ⓘ':'✓';
+    byId('feedback-logs').hidden=!logs;
+  }
+  byId('feedback-dismiss').addEventListener('click',()=>{byId('action-feedback').hidden=true;});
+  const motion=byId('hero-motion');
+  function motionLabel(){motion.setAttribute('aria-label',window.CacheflowI18n.t(motion.getAttribute('aria-pressed')==='true'?'hero.motionResume':'hero.motionPause'));}
+  motion.addEventListener('click',()=>{const paused=motion.getAttribute('aria-pressed')!=='true';motion.setAttribute('aria-pressed',String(paused));document.querySelector('.hero').classList.toggle('motion-paused',paused);motion.textContent=paused?'▷':'Ⅱ';motionLabel();});
+  document.addEventListener('cacheflow:language',motionLabel);
   document.addEventListener('click', event => {
     const control = event.target instanceof Element ? event.target.closest('button, input') : null;
     if (control) lastControl = control;
@@ -120,7 +139,7 @@
   document.addEventListener('keydown', event => {
     if (event.key === 'Escape') byId('toast')?.classList.remove('visible');
   });
-  window.CacheflowUX = { toast, announce, beginAction, endAction, setConnection, setActive };
+  window.CacheflowUX = { toast, announce, beginAction, endAction, setConnection, setActive, feedback };
   function initialize() {
     liveRegion();
     const observed = ['overview-area', 'games-area', 'activity-area', 'planning-area', 'logs-area'];

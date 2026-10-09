@@ -12,6 +12,8 @@
 
 Only one managed prefill job runs at a time. Busy controls are disabled; the activity indicator describes work, not an exact percentage.
 
+The status strip shows the current game, why new starts are blocked, and the timestamp of the sampled data. Actions show a persistent response with a link to logs when relevant. While the dashboard stays open, the transition from a running session to idle produces an end-of-session notice; this is not a claim that every game succeeded. Manual refresh reports success only after receiving valid, recent server data. The featured artwork has subtle motion with a pause button and respects the system's reduced-motion preference.
+
 ## Night window
 
 Default: **01:00–07:00, Europe/Brussels**. Configure `TZ`, `NIGHT_START` and `NIGHT_END` in `.env`, then recreate the UI with `docker compose up -d ui`. The window must satisfy `0 <= NIGHT_START < NIGHT_END <= 24`; crossing midnight is not supported.

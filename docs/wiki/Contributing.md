@@ -9,6 +9,7 @@ python -m py_compile server.py runtime.py catalog.py docker_backend.py scripts/c
 python -m unittest discover -s tests -v
 python scripts/check-translations.py
 node scripts/test-i18n.cjs
+node scripts/test-feedback.cjs
 node --check app.js
 node --check i18n.js
 node --check ux.js
